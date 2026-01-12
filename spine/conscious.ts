@@ -1,3 +1,11 @@
+/**
+ * Conscious workspace
+ *
+ * Invariants:
+ * 3 — Consciousness is capacity-limited
+ * 8 — Forgetting is the default
+ */
+
 export class ConsciousWorkspace {
   private capacity: number;
   private items: any[] = [];

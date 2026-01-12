@@ -1,3 +1,15 @@
+/**
+ * ALIVE SPINE — AUTHORITATIVE LOOP
+ *
+ * Invariants:
+ * 1 — Exactly one spine
+ * 2 — Spine never blocks
+ * 9 — Latency is contained
+ * 10 — Identity via continuity
+ *
+ * This is the only place where "now" exists.
+ */
+
 import { ingress } from "./ingress";
 import { arbitrate } from "./arbitration";
 import { egress } from "./egress";
