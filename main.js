@@ -3,14 +3,23 @@
 import { PersistentMemory } from "./memory/PersistentMemory.js";
 import { summarizeRecentEvents } from "./runtime/summarizer.js";
 import { parseIntent } from "./runtime/intents.js";
-import { checkPermission } from "./runtime/permissions.js";
+import { attachTrust, checkPermission } from "./runtime/permissions.js";
 import { schedule, clearAll } from "./runtime/scheduler.js";
 import { onWake, onSleep } from "./runtime/lifecycle.js";
 import { WindowsAdapter } from "./adapters/windows/index.js";
 import { search } from "./adapters/browser/index.js";
 import { speak } from "./services/voice/tts.js";
+import { recordHabit } from "./runtime/habits.js";
+import { updateMood, getMood } from "./runtime/emotions.js";
+import { addGoal, listGoals } from "./runtime/goals.js";
+import { trustCommand, isTrusted } from "./memory/trust.js";
+import { reflect } from "./services/reflection/index.js";
+
+import "./services/watchdog/index.js";
+import "./ui/tray.js";
 
 const memory = new PersistentMemory();
+attachTrust({ isTrusted });
 
 console.log("ALIVE booting...");
 onWake(memory.getIdentity().name);
@@ -44,7 +53,10 @@ process.stdin.on("data", async (data) => {
   memory.recordEvent("input", input);
   interactionCount++;
 
+  updateMood(input.toLowerCase());
+
   const intent = parseIntent(input);
+  recordHabit(intent.type);
   const permission = checkPermission(intent);
 
   if (permission === "CONFIRM") {
@@ -77,13 +89,32 @@ process.stdin.on("data", async (data) => {
         response = "I’ll remember that.";
         break;
 
-      case "RECALL":
-        response = memory.getSummary();
-        break;
+      // v0.5 add-ons (safe core)
+      case "UNKNOWN": {
+        const text = String(intent.value).toLowerCase();
+        if (text.startsWith("goal ")) {
+          addGoal(text.replace("goal ", ""));
+          response = "Goal added.";
+          break;
+        }
+        if (text === "what are my goals") {
+          response = listGoals();
+          break;
+        }
+        if (text.startsWith("trust ")) {
+          const cmd = text.replace("trust ", "");
+          trustCommand(cmd);
+          response = `Trusted: ${cmd}`;
+          break;
+        }
 
-      case "UNKNOWN":
         search(intent.value);
         response = "Searching.";
+        break;
+      }
+
+      case "RECALL":
+        response = memory.getSummary();
         break;
     }
   } catch (err) {
@@ -94,7 +125,15 @@ process.stdin.on("data", async (data) => {
     schedule(() => summarizeRecentEvents(memory), 0);
   }
 
-  console.log(response);
-  speak(String(response));
-  memory.recordEvent("output", String(response));
+  const mood = getMood();
+  const responseText = typeof response === "string" ? response : JSON.stringify(response, null, 2);
+
+  console.log(responseText);
+  speak(responseText);
+  memory.recordEvent("output", responseText);
+
+  const suggestion = reflect(memory.getSummary() || "");
+  if (suggestion) {
+    console.log(`[reflection/${mood}] ${suggestion}`);
+  }
 });
