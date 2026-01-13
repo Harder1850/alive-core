@@ -1,5 +1,9 @@
 # Node / TypeScript
 node_modules/
+.DS_Store
+
+# Local persistent memory (runtime artifact)
+alive_memory/
 dist/
 build/
 coverage/
