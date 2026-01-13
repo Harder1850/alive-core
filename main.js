@@ -10,6 +10,7 @@ import { WindowsAdapter } from "./adapters/windows/index.js";
 import { search } from "./adapters/browser/index.js";
 import { speak } from "./services/voice/tts.js";
 import * as filesystem from "./adapters/filesystem/index.js";
+import * as clipboard from "./adapters/clipboard/index.js";
 import * as permissions from "./runtime/confirmations.js";
 import { recordHabit } from "./runtime/habits.js";
 import { updateMood, getMood } from "./runtime/emotions.js";
@@ -127,6 +128,15 @@ process.stdin.on("data", async (data) => {
         response = `Deleted ${intent.value}.`;
         break;
       }
+
+      case "COPY":
+        clipboard.copy(String(intent.value));
+        response = "Copied.";
+        break;
+
+      case "PASTE":
+        response = await clipboard.paste();
+        break;
 
       // v0.5 add-ons (safe core)
       case "UNKNOWN": {

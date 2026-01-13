@@ -35,6 +35,14 @@ export function parseIntent(input) {
     return { type: "TRUST_DELETE", value: text.replace("trust delete ", "") };
   }
 
+  if (text.startsWith("copy ")) {
+    return { type: "COPY", value: input.slice(5) };
+  }
+
+  if (text === "paste") {
+    return { type: "PASTE" };
+  }
+
   if (text === "what do you remember") {
     return { type: "RECALL" };
   }
