@@ -11,6 +11,7 @@ import { search } from "./adapters/browser/index.js";
 import { speak } from "./services/voice/tts.js";
 import * as filesystem from "./adapters/filesystem/index.js";
 import * as clipboard from "./adapters/clipboard/index.js";
+import { notify } from "./adapters/notifications/index.js";
 import * as permissions from "./runtime/confirmations.js";
 import { recordHabit } from "./runtime/habits.js";
 import { updateMood, getMood } from "./runtime/emotions.js";
@@ -23,6 +24,8 @@ import "./ui/tray.js";
 
 const memory = new PersistentMemory();
 attachTrust({ isTrusted });
+
+let notificationsEnabled = false;
 
 console.log("ALIVE booting...");
 onWake(memory.getIdentity().name);
@@ -138,6 +141,16 @@ process.stdin.on("data", async (data) => {
         response = await clipboard.paste();
         break;
 
+      case "ENABLE_NOTIFICATIONS":
+        notificationsEnabled = true;
+        response = "Notifications enabled.";
+        break;
+
+      case "DISABLE_NOTIFICATIONS":
+        notificationsEnabled = false;
+        response = "Notifications disabled.";
+        break;
+
       // v0.5 add-ons (safe core)
       case "UNKNOWN": {
         const text = String(intent.value).toLowerCase();
@@ -180,6 +193,11 @@ process.stdin.on("data", async (data) => {
   console.log(responseText);
   speak(responseText);
   memory.recordEvent("output", responseText);
+
+  if (notificationsEnabled) {
+    // If BurntToast isn't installed, notify() silently no-ops.
+    notify(responseText);
+  }
 
   const suggestion = reflect(memory.getSummary() || "");
   if (suggestion) {

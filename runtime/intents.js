@@ -43,6 +43,14 @@ export function parseIntent(input) {
     return { type: "PASTE" };
   }
 
+  if (text === "enable notifications") {
+    return { type: "ENABLE_NOTIFICATIONS" };
+  }
+
+  if (text === "disable notifications") {
+    return { type: "DISABLE_NOTIFICATIONS" };
+  }
+
   if (text === "what do you remember") {
     return { type: "RECALL" };
   }
