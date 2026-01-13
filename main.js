@@ -21,12 +21,18 @@ import { reflect } from "./services/reflection/index.js";
 import { addGoal as persistGoal, loadGoals, updateGoal } from "./goals/store.js";
 import { startGoalRunner } from "./background/goalRunner.js";
 import { getGoalSummary } from "./goals/summary.js";
+import { initializeRecorder } from "./experience/recorder.js";
+import { enqueueEvent } from "./runtime/eventBus.js";
+import { startExperienceWriter, stopExperienceWriter } from "./runtime/experienceWriter.js";
 
 import "./services/watchdog/index.js";
 import "./ui/tray.js";
 
 const memory = new PersistentMemory();
 attachTrust({ isTrusted });
+
+initializeRecorder({ dataDir: ".alive-data" });
+startExperienceWriter({ intervalMs: 250 });
 
 let notificationsEnabled = false;
 
@@ -44,6 +50,7 @@ if (summary) {
 let interactionCount = 0;
 
 process.on("SIGINT", () => {
+  stopExperienceWriter();
   summarizeRecentEvents(memory);
   onSleep();
   memory.recordEvent("shutdown", "Process interrupted");
@@ -63,6 +70,7 @@ process.stdin.on("data", async (data) => {
   if (!input) return;
 
   memory.recordEvent("input", input);
+  enqueueEvent({ source: "user", type: "input", payload: input, importance: 0.7 });
   interactionCount++;
 
   updateMood(input.toLowerCase());
@@ -227,6 +235,7 @@ process.stdin.on("data", async (data) => {
   console.log(responseText);
   speak(responseText);
   memory.recordEvent("output", responseText);
+  enqueueEvent({ source: "system", type: "output", payload: responseText, importance: 0.6 });
 
   if (notificationsEnabled) {
     // If BurntToast isn't installed, notify() silently no-ops.

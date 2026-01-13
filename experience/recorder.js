@@ -1,0 +1,63 @@
+// experience/recorder.js
+
+import fs from "node:fs";
+import path from "node:path";
+import { createBaseEvent, validateEvent } from "./schema.js";
+
+let _initialized = false;
+let _dataDir = null;
+let _eventsFile = null;
+
+// simple write queue (prevents concurrent appends from interleaving)
+let _queue = Promise.resolve();
+
+export function getDataDir() {
+  if (!_dataDir) throw new Error("experience recorder not initialized");
+  return _dataDir;
+}
+
+export function getEventsFilePath() {
+  if (!_eventsFile) throw new Error("experience recorder not initialized");
+  return _eventsFile;
+}
+
+export function isInitialized() {
+  return _initialized;
+}
+
+export function initializeRecorder({ dataDir = ".alive-data", filename = "events.jsonl" } = {}) {
+  _dataDir = path.resolve(process.cwd(), dataDir);
+  _eventsFile = path.join(_dataDir, filename);
+
+  fs.mkdirSync(_dataDir, { recursive: true });
+  if (!fs.existsSync(_eventsFile)) fs.writeFileSync(_eventsFile, "", "utf8");
+
+  _initialized = true;
+  return { dataDir: _dataDir, eventsFile: _eventsFile };
+}
+
+/**
+ * EXPERIENCE INVARIANT:
+ * Events are append-only. Never edited, reordered, or deleted.
+ */
+export function createEvent({ source, type, payload, importance } = {}) {
+  return createBaseEvent({ source, type, payload, importance });
+}
+
+export function appendEvent(evt) {
+  if (!_initialized) throw new Error("experience recorder not initialized");
+  if (!validateEvent(evt)) throw new Error("invalid event");
+
+  const line = JSON.stringify(evt) + "\n";
+
+  // serialize appends
+  _queue = _queue.then(() => fs.promises.appendFile(_eventsFile, line, "utf8"));
+  return _queue;
+}
+
+export async function recordEvent({ source, type, payload, importance } = {}) {
+  const evt = createEvent({ source, type, payload, importance });
+  await appendEvent(evt);
+  return evt;
+}
+
