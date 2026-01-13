@@ -2,6 +2,14 @@
 node_modules/
 .DS_Store
 
+# local runtime artifacts
+.alive-data/
+.alive-data-test/
+.repo_grep_hits.txt
+.repo_manifest.txt
+.repo_root_dir.txt
+.repo_tree.txt
+
 # Local persistent memory (runtime artifact)
 alive_memory/
 dist/
