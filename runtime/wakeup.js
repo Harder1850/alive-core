@@ -15,7 +15,7 @@ import {
   buildBriefSummary,
 } from "../experience/index.js";
 
-import { hasCapability, isAvailable, registerCapability } from "../capabilities/registry.js";
+import { hasCapability, isAvailable, registerCapability, listAvailable } from "../capabilities/registry.js";
 import { speak } from "../adapters/voice/speak.js";
 
 function ensureVoiceCapabilityRegistered() {
@@ -39,6 +39,24 @@ function maybeSpeak(text) {
   if (hasCapability("voice.tts") && isAvailable("voice.tts")) {
     speak(text);
   }
+}
+
+function announceCapabilities() {
+  const available = listAvailable();
+
+  if (!available || available.length === 0) {
+    return;
+  }
+
+  const names = available.map(c => c.name || c.id);
+
+  const line =
+    names.length === 1
+      ? `The following capability is available right now: ${names[0]}.`
+      : `These capabilities are available right now: ${names.join(", ")}.`;
+
+  console.log(line);
+  maybeSpeak(line);
 }
 
 export function wakeUp() {
@@ -69,4 +87,6 @@ export function wakeUp() {
   console.log(summary);
 
   maybeSpeak(`I'm back. Here's what I remember. ${summary}`);
+
+  announceCapabilities();
 }
