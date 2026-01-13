@@ -9,6 +9,8 @@ import { onWake, onSleep } from "./runtime/lifecycle.js";
 import { WindowsAdapter } from "./adapters/windows/index.js";
 import { search } from "./adapters/browser/index.js";
 import { speak } from "./services/voice/tts.js";
+import * as filesystem from "./adapters/filesystem/index.js";
+import * as permissions from "./runtime/confirmations.js";
 import { recordHabit } from "./runtime/habits.js";
 import { updateMood, getMood } from "./runtime/emotions.js";
 import { addGoal, listGoals } from "./runtime/goals.js";
@@ -88,6 +90,43 @@ process.stdin.on("data", async (data) => {
         memory.setPreference("note", intent.value);
         response = "I’ll remember that.";
         break;
+
+      case "SEARCH_FILES":
+        response = filesystem.searchFiles(".", intent.value);
+        break;
+
+      case "CONFIRM_DELETE": {
+        const key = `delete:${intent.value}`;
+        permissions.requestConfirmation(key);
+        response = `Confirmation recorded for delete ${intent.value}. Now repeat delete file ${intent.value}.`;
+        break;
+      }
+
+      case "TRUST_DELETE": {
+        const key = `delete:${intent.value}`;
+        trustCommand(key);
+        response = `Trusted: delete ${intent.value}`;
+        break;
+      }
+
+      case "DELETE_FILE": {
+        const key = `delete:${intent.value}`;
+        if (!isTrusted(key) && !permissions.isConfirmed(key)) {
+          permissions.requestConfirmation(key);
+          response = `This will permanently delete ${intent.value}. Say "confirm delete ${intent.value}" to proceed. You can trust this command to skip confirmation in the future.`;
+          break;
+        }
+
+        filesystem.deleteFile(intent.value);
+        memory.recordEvent("destructive", {
+          action: intent.type,
+          target: intent.value,
+          time: Date.now(),
+        });
+        permissions.clearConfirmation(key);
+        response = `Deleted ${intent.value}.`;
+        break;
+      }
 
       // v0.5 add-ons (safe core)
       case "UNKNOWN": {

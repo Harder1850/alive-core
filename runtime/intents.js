@@ -19,10 +19,25 @@ export function parseIntent(input) {
     return { type: "REMEMBER", value: text.replace("remember ", "") };
   }
 
+  if (text.startsWith("delete file ")) {
+    return { type: "DELETE_FILE", value: text.replace("delete file ", "") };
+  }
+
+  if (text.startsWith("confirm delete ")) {
+    return { type: "CONFIRM_DELETE", value: text.replace("confirm delete ", "") };
+  }
+
+  if (text.startsWith("search file ")) {
+    return { type: "SEARCH_FILES", value: text.replace("search file ", "") };
+  }
+
+  if (text.startsWith("trust delete ")) {
+    return { type: "TRUST_DELETE", value: text.replace("trust delete ", "") };
+  }
+
   if (text === "what do you remember") {
     return { type: "RECALL" };
   }
 
   return { type: "UNKNOWN", value: input };
 }
-
