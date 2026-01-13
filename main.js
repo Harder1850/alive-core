@@ -9,15 +9,22 @@ console.log("ALIVE booting...");
 
 const identity = memory.getIdentity();
 if (!identity.name) {
-  console.log("I don't know your name yet.");
+  console.log("Hello. I’m here.");
 } else {
-  console.log(`Welcome back, ${identity.name}.`);
+  console.log(`I’m back, ${identity.name}.`);
 }
 
-if (memory.getSummary()) {
-  console.log("What I remember:");
-  console.log(memory.getSummary());
+const summary = memory.getSummary();
+if (summary) {
+  console.log("Here’s what I remember:");
+  console.log(summary);
 }
+
+process.on("SIGINT", () => {
+  console.log("\nI’m going to sleep.");
+  memory.recordEvent("shutdown", "Process interrupted");
+  process.exit(0);
+});
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -25,17 +32,21 @@ const rl = readline.createInterface({
 });
 
 rl.question("> ", (input) => {
+  memory.recordEvent("input", input);
+
   if (input.toLowerCase().startsWith("my name is")) {
     const name = input.slice(10).trim();
     memory.setIdentityField("name", name);
-    memory.recordEvent("identity", `User name set to ${name}`);
     memory.updateSummary(`User's name is ${name}.`);
-    console.log(`Got it. Your name is ${name}.`);
+
+    const responseText = `Got it. Your name is ${name}.`;
+    memory.recordEvent("output", responseText);
+    console.log(responseText);
   } else {
-    memory.recordEvent("interaction", input);
-    console.log("Okay.");
+    const responseText = "Okay.";
+    memory.recordEvent("output", responseText);
+    console.log(responseText);
   }
 
   rl.close();
 });
-
