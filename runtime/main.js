@@ -12,10 +12,12 @@ import { speakText } from "../capabilities/voice/speak.js";
 import { speak } from "../adapters/voice/speak.js";
 
 import { translateTextToIntent } from "./intentTranslator.js";
+import { buildWakeNarrative } from "./wakeNarrative.js";
 
 import { getProcedureByIntent } from "../procedures/store.js";
 
 import { initializeRecorder, recordEvent } from "../experience/recorder.js";
+import { loadAllEvents } from "../experience/stream.js";
 import { initializeStore } from "../memory/memoryStore.js";
 import { hasCapability, isAvailable, registerCapability } from "../capabilities/registry.js";
 
@@ -90,6 +92,11 @@ export async function runOnce() {
   initializeRecorder({ dataDir: ".alive-data" });
   initializeStore("./memory_data");
   ensureBuiltinRuntimeCapabilities();
+
+  // Phase 6: wake narrative (read-only, deterministic)
+  const wakeMsg = buildWakeNarrative(loadAllEvents());
+  console.log(wakeMsg);
+  await speakText({ text: wakeMsg, speak });
 
   const inputEvt = await listenOnce({ transcribe: stdinTranscribe });
   await recordEvent({ source: "human", type: "input", payload: inputEvt.payload });
