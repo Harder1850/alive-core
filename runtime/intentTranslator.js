@@ -10,10 +10,13 @@ export function translateTextToIntent(text = "") {
     return { intent: "organize_downloads" };
   }
 
+  if (t.includes("demo") && t.includes("website")) {
+    return { intent: "generate_demo_site" };
+  }
+
   if (t.includes("what") && t.includes("remember")) {
     return { intent: "query_memory" };
   }
 
   return { intent: "unknown" };
 }
-

@@ -8,9 +8,10 @@
 // No learning. No background work. No auto-selection.
 
 import { organizeDownloadsProcedure } from "./organizeDownloads.js";
+import { generateDemoSiteProcedure } from "./generateDemoSite.js";
 
 /** @type {Array<any>} */
-const procedures = [organizeDownloadsProcedure];
+const procedures = [organizeDownloadsProcedure, generateDemoSiteProcedure];
 
 /** @type {Map<string, { executions: number, last_used: number | null }>} */
 const stats = new Map();
@@ -36,4 +37,3 @@ export function recordProcedureExecution(procedureId) {
 export function getProcedureStats(procedureId) {
   return stats.get(procedureId) || { executions: 0, last_used: null };
 }
-

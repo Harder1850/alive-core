@@ -57,6 +57,20 @@ function ensureBuiltinRuntimeCapabilities() {
       availability: "available",
     },
     {
+      id: "filesystem.ensureDir",
+      name: "Filesystem Ensure Dir",
+      type: "software",
+      interface: { protocol: "fs", method: "mkdir" },
+      availability: "available",
+    },
+    {
+      id: "filesystem.write",
+      name: "Filesystem Write",
+      type: "software",
+      interface: { protocol: "fs", method: "writeFile" },
+      availability: "available",
+    },
+    {
       id: "memory.store",
       name: "Memory Store",
       type: "software",
