@@ -8,6 +8,10 @@ dist/
 build/
 coverage/
 
+# Local goals data + background logs
+data/goals.json
+logs/background.log
+
 # Logs
 *.log
 npm-debug.log*

@@ -35,6 +35,14 @@ export function parseIntent(input) {
     return { type: "TRUST_DELETE", value: text.replace("trust delete ", "") };
   }
 
+  if (text.startsWith("add goal ")) {
+    return { type: "ADD_GOAL", value: input.slice(9) };
+  }
+
+  if (text === "goals") {
+    return { type: "LIST_GOALS" };
+  }
+
   if (text.startsWith("copy ")) {
     return { type: "COPY", value: input.slice(5) };
   }

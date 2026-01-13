@@ -18,6 +18,9 @@ import { updateMood, getMood } from "./runtime/emotions.js";
 import { addGoal, listGoals } from "./runtime/goals.js";
 import { trustCommand, isTrusted } from "./memory/trust.js";
 import { reflect } from "./services/reflection/index.js";
+import { addGoal as persistGoal, loadGoals, updateGoal } from "./goals/store.js";
+import { startGoalRunner } from "./background/goalRunner.js";
+import { getGoalSummary } from "./goals/summary.js";
 
 import "./services/watchdog/index.js";
 import "./ui/tray.js";
@@ -26,6 +29,8 @@ const memory = new PersistentMemory();
 attachTrust({ isTrusted });
 
 let notificationsEnabled = false;
+
+const stopGoalRunner = startGoalRunner({ intervalMs: 30_000 });
 
 console.log("ALIVE booting...");
 onWake(memory.getIdentity().name);
@@ -43,6 +48,7 @@ process.on("SIGINT", () => {
   onSleep();
   memory.recordEvent("shutdown", "Process interrupted");
   clearAll();
+  stopGoalRunner();
   process.exit(0);
 });
 
@@ -141,6 +147,29 @@ process.stdin.on("data", async (data) => {
         response = await clipboard.paste();
         break;
 
+      case "ADD_GOAL": {
+        const now = Date.now();
+        const id = `g_${now}`;
+        persistGoal({
+          id,
+          description: String(intent.value).trim(),
+          intent: "user-requested",
+          priority: 1,
+          status: "active",
+          created_at: now,
+          last_updated: now,
+          last_progress_note: "",
+          next_possible_action: "review",
+          dependencies: [],
+        });
+        response = `Goal added: ${id}`;
+        break;
+      }
+
+      case "LIST_GOALS":
+        response = loadGoals();
+        break;
+
       case "ENABLE_NOTIFICATIONS":
         notificationsEnabled = true;
         response = "Notifications enabled.";
@@ -154,7 +183,12 @@ process.stdin.on("data", async (data) => {
       // v0.5 add-ons (safe core)
       case "UNKNOWN": {
         const text = String(intent.value).toLowerCase();
+        if (text === "goal summary") {
+          response = getGoalSummary();
+          break;
+        }
         if (text.startsWith("goal ")) {
+          // Legacy in-memory goals
           addGoal(text.replace("goal ", ""));
           response = "Goal added.";
           break;
