@@ -183,6 +183,36 @@ export function isAvailable(id) {
   return !!c && c.availability === "available";
 }
 
+// ---------------------------------------------------------------------------
+// BOOTSTRAP: register built-in capability stubs (idempotent)
+// ---------------------------------------------------------------------------
+
+function tryRegisterBuiltin(capability) {
+  try {
+    if (!hasCapability(capability.id)) {
+      registerCapability(capability);
+    }
+  } catch {
+    // best-effort; registry may be read-only
+  }
+}
+
+tryRegisterBuiltin({
+  id: "voice.listen",
+  name: "Voice Listen",
+  type: "hardware",
+  interface: { protocol: "microphone", method: "listenOnce" },
+  availability: "available",
+});
+
+tryRegisterBuiltin({
+  id: "voice.speak",
+  name: "Voice Speak",
+  type: "hardware",
+  interface: { protocol: "local-tts", method: "speakText" },
+  availability: "available",
+});
+
 export function getCountsByType() {
   const list = loadAll();
   const out = { hardware: 0, software: 0, service: 0 };
@@ -207,4 +237,3 @@ export function getCountsByAvailability() {
 }
 
 export { REGISTRY_FILE };
-
