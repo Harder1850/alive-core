@@ -1,21 +1,19 @@
 // main.js
 
 import { PersistentMemory } from "./memory/PersistentMemory.js";
-import readline from "readline";
 import { summarizeRecentEvents } from "./runtime/summarizer.js";
-import { openApp } from "./adapters/windows/index.js";
+import { parseIntent } from "./runtime/intents.js";
+import { checkPermission } from "./runtime/permissions.js";
+import { schedule, clearAll } from "./runtime/scheduler.js";
+import { onWake, onSleep } from "./runtime/lifecycle.js";
+import { WindowsAdapter } from "./adapters/windows/index.js";
+import { search } from "./adapters/browser/index.js";
+import { speak } from "./services/voice/tts.js";
 
 const memory = new PersistentMemory();
-let interactionCount = 0;
 
 console.log("ALIVE booting...");
-
-const identity = memory.getIdentity();
-if (!identity.name) {
-  console.log("Hello. I’m here.");
-} else {
-  console.log(`I’m back, ${identity.name}.`);
-}
+onWake(memory.getIdentity().name);
 
 const summary = memory.getSummary();
 if (summary) {
@@ -23,60 +21,80 @@ if (summary) {
   console.log(summary);
 }
 
+let interactionCount = 0;
+
 process.on("SIGINT", () => {
   summarizeRecentEvents(memory);
-  console.log("\nI’m going to sleep.");
+  onSleep();
   memory.recordEvent("shutdown", "Process interrupted");
+  clearAll();
   process.exit(0);
 });
 
-// Daemon-enough idle loop (keeps process alive when stdin is quiet)
+// Daemon-enough (keeps process alive)
 setInterval(() => {}, 1000);
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
+process.stdin.setEncoding("utf8");
+process.stdin.resume();
+
+process.stdin.on("data", async (data) => {
+  const input = data.toString().trim();
+  if (!input) return;
+
+  memory.recordEvent("input", input);
+  interactionCount++;
+
+  const intent = parseIntent(input);
+  const permission = checkPermission(intent);
+
+  if (permission === "CONFIRM") {
+    console.log("Confirm command execution by repeating it.");
+    return;
+  }
+
+  let response = "I didn’t understand that.";
+
+  try {
+    switch (intent.type) {
+      case "OPEN_APP":
+        WindowsAdapter.openApp(intent.value);
+        response = `Opening ${intent.value}`;
+        memory.recordEvent("action", `openApp:${intent.value}`);
+        break;
+
+      case "LIST_FILES":
+        response = WindowsAdapter.listFiles(".");
+        break;
+
+      case "RUN_COMMAND":
+        WindowsAdapter.runCommand(intent.value);
+        response = "Running command.";
+        memory.recordEvent("command", intent.value);
+        break;
+
+      case "REMEMBER":
+        memory.setPreference("note", intent.value);
+        response = "I’ll remember that.";
+        break;
+
+      case "RECALL":
+        response = memory.getSummary();
+        break;
+
+      case "UNKNOWN":
+        search(intent.value);
+        response = "Searching.";
+        break;
+    }
+  } catch (err) {
+    response = `Error: ${err.message}`;
+  }
+
+  if (interactionCount % 10 === 0) {
+    schedule(() => summarizeRecentEvents(memory), 0);
+  }
+
+  console.log(response);
+  speak(String(response));
+  memory.recordEvent("output", String(response));
 });
-
-function prompt() {
-  rl.question("> ", (input) => {
-    memory.recordEvent("input", input);
-    interactionCount++;
-
-    if (input.toLowerCase().startsWith("my name is")) {
-      const name = input.slice(10).trim();
-      memory.setIdentityField("name", name);
-      memory.updateSummary(`User's name is ${name}.`);
-
-      const responseText = `Got it. Your name is ${name}.`;
-      memory.recordEvent("output", responseText);
-      console.log(responseText);
-    } else if (input.toLowerCase().startsWith("open ")) {
-      const target = input.slice(5).trim();
-      openApp(target)
-        .then(() => {
-          const responseText = `Opened ${target}.`;
-          memory.recordEvent("action", `openApp:${target}`);
-          memory.recordEvent("output", responseText);
-          console.log(responseText);
-        })
-        .catch((err) => {
-          const responseText = `Could not open ${target}: ${err.message}`;
-          memory.recordEvent("output", responseText);
-          console.log(responseText);
-        });
-    } else {
-      const responseText = "Okay.";
-      memory.recordEvent("output", responseText);
-      console.log(responseText);
-    }
-
-    if (interactionCount % 10 === 0) {
-      summarizeRecentEvents(memory);
-    }
-
-    prompt();
-  });
-}
-
-prompt();

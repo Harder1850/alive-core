@@ -51,3 +51,10 @@ export async function runCommand(cmd) {
   return await execAsync(`cmd /c ${raw}`);
 }
 
+export const WindowsAdapter = {
+  listFiles,
+  readFile,
+  writeFile,
+  openApp,
+  runCommand,
+};
