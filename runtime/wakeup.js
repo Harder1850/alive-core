@@ -17,6 +17,7 @@ import {
 
 import { hasCapability, isAvailable, registerCapability, listAvailable } from "../capabilities/registry.js";
 import { speak } from "../adapters/voice/speak.js";
+import { writeClipboard } from "../adapters/clipboard/write.js";
 
 function ensureVoiceCapabilityRegistered() {
   // idempotent best-effort auto-registration
@@ -31,6 +32,21 @@ function ensureVoiceCapabilityRegistered() {
     });
   } catch {
     // ignore if it already exists or store isn't writable
+  }
+}
+
+function ensureClipboardCapabilityRegistered() {
+  if (hasCapability("clipboard.write")) return;
+  try {
+    registerCapability({
+      id: "clipboard.write",
+      name: "Clipboard Write",
+      type: "software",
+      interface: { protocol: "clipboard", method: "writeText" },
+      availability: "available",
+    });
+  } catch {
+    // ignore
   }
 }
 
@@ -57,6 +73,16 @@ function announceCapabilities() {
 
   console.log(line);
   maybeSpeak(line);
+}
+
+function performWakeupMicroAction() {
+  ensureClipboardCapabilityRegistered();
+  if (hasCapability("clipboard.write") && isAvailable("clipboard.write")) {
+    const line = `ALIVE woke up at ${new Date().toISOString()}.`;
+    writeClipboard(line);
+    console.log("I wrote a wake-up marker to the clipboard.");
+    maybeSpeak("I wrote a wake-up marker to the clipboard.");
+  }
 }
 
 export function wakeUp() {
@@ -89,4 +115,6 @@ export function wakeUp() {
   maybeSpeak(`I'm back. Here's what I remember. ${summary}`);
 
   announceCapabilities();
+
+  performWakeupMicroAction();
 }
