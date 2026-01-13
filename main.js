@@ -24,6 +24,7 @@ import { getGoalSummary } from "./goals/summary.js";
 import { initializeRecorder } from "./experience/recorder.js";
 import { enqueueEvent } from "./runtime/eventBus.js";
 import { startExperienceWriter, stopExperienceWriter } from "./runtime/experienceWriter.js";
+import { wakeUp } from "./runtime/wakeup.js";
 
 import "./services/watchdog/index.js";
 import "./ui/tray.js";
@@ -33,6 +34,10 @@ attachTrust({ isTrusted });
 
 initializeRecorder({ dataDir: ".alive-data" });
 startExperienceWriter({ intervalMs: 250 });
+
+wakeUp();
+
+enqueueEvent({ source: "system", type: "startup", payload: { message: "System started" }, importance: 0.6 });
 
 let notificationsEnabled = false;
 
