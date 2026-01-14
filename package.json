@@ -2,7 +2,13 @@
   "name": "alive-core",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build:spine": "tsc -p tsconfig.spine.json --rewriteRelativeImportExtensions && node scripts/fix-spine-imports.mjs"
+  },
   "bin": {
     "alive": "./bin/alive.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

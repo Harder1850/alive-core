@@ -15,7 +15,9 @@ demo/
 
 # Local persistent memory (runtime artifact)
 alive_memory/
-dist/
+
+# Build artifacts
+/dist/
 build/
 coverage/
 

@@ -16,6 +16,8 @@ import { translateTextToIntent } from "./intentTranslator.js";
 import { buildWakeNarrative } from "./wakeNarrative.js";
 import { loadSessionContext } from "./sessionContext.js";
 
+import { Spine } from "../dist/spine/loop.js";
+
 import { getProcedureByIntent } from "../procedures/store.js";
 
 import { initializeRecorder, recordEvent } from "../experience/recorder.js";
@@ -160,9 +162,10 @@ export async function runOnce() {
   });
 
   // Spine sees intent only (no raw language).
-  // NOTE: spine is currently TypeScript-only in this repo (no JS loader).
-  // For Phase 5, we record the tick request explicitly and keep execution deterministic.
-  await recordEvent({ source: "system", type: "spine_tick_requested", payload: { turnId, input: intentObj } });
+  // Real spine execution (Phase 10): run one tick.
+  // No new behavior intended: this makes the existing spine executable.
+  const spine = new Spine();
+  spine.tick(intentObj);
 
   const procedure = getProcedureByIntent(intentObj.intent);
   if (!procedure) {

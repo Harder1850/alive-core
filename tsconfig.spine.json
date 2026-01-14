@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "rootDir": "spine",
+    "outDir": "dist/spine",
+    "declaration": false,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["spine/**/*.ts"]
+}
