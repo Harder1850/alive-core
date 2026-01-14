@@ -14,6 +14,21 @@ import { ingress } from "./ingress";
 import { arbitrate } from "./arbitration";
 import { egress } from "./egress";
 import { ConsciousWorkspace } from "./conscious";
+import type { Constraint } from "./constraints";
+
+const CONSTRAINTS: Constraint[] = [
+  {
+    id: "block_unknown",
+    check(intent: unknown) {
+      // Deterministic starter constraint for Phase 13 verification.
+      // Blocks unknown intents.
+      if (typeof intent === "string") return intent !== "unknown";
+      const v = (intent && typeof intent === "object") ? (intent as any).intent : undefined;
+      return v !== "unknown";
+    },
+    violationMessage: "Unknown intents are not allowed.",
+  },
+];
 
 export class Spine {
   private conscious: ConsciousWorkspace;
@@ -23,7 +38,7 @@ export class Spine {
     this.conscious = new ConsciousWorkspace(maxConsciousItems);
   }
 
-  tick(input: unknown): { ok: true } {
+  tick(input: unknown, context: unknown = null): { ok: true } | { ok: false; violated: string; intent: unknown; message: string } {
     this.tickCount++;
 
     // Phase 12: deterministic multi-intent ticks.
@@ -36,6 +51,17 @@ export class Spine {
         : [input]);
 
     for (const intent of intents) {
+      for (const constraint of CONSTRAINTS) {
+        if (!constraint.check(intent, context)) {
+          return {
+            ok: false,
+            violated: constraint.id,
+            intent,
+            message: constraint.violationMessage,
+          };
+        }
+      }
+
       const filtered = ingress([intent]);
       this.conscious.integrate(filtered);
 

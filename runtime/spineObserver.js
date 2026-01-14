@@ -18,7 +18,23 @@ export async function observeSpineTick({ intent, spine, recordEvent }) {
   const timestamp = Date.now();
 
   // Run the tick (no try/catch: failures should fail loudly).
-  spine.tick(intent);
+  const tickResult = spine.tick(intent);
+
+  // If constraints blocked execution, record and abort loudly.
+  if (tickResult && typeof tickResult === "object" && tickResult.ok === false) {
+    await recordEvent({
+      source: "system",
+      type: "constraint_violated",
+      payload: {
+        constraintId: tickResult.violated,
+        intent: tickResult.intent,
+        message: tickResult.message,
+      },
+    });
+
+    // No retries. No fallback.
+    throw new Error(`constraint_violated:${tickResult.violated}`);
+  }
 
   // Capture returned state (if any) without interpretation.
   // If the spine doesn't expose anything, snapshot is null.
@@ -36,4 +52,3 @@ export async function observeSpineTick({ intent, spine, recordEvent }) {
 
   return spineStateSnapshot;
 }
-
