@@ -15,6 +15,7 @@ import { speak } from "../adapters/voice/speak.js";
 import { translateTextToIntent } from "./intentTranslator.js";
 import { buildWakeNarrative } from "./wakeNarrative.js";
 import { loadSessionContext } from "./sessionContext.js";
+import { observeSpineTick } from "./spineObserver.js";
 
 import { Spine } from "../dist/spine/loop.js";
 
@@ -165,7 +166,7 @@ export async function runOnce() {
   // Real spine execution (Phase 10): run one tick.
   // No new behavior intended: this makes the existing spine executable.
   const spine = new Spine();
-  spine.tick(intentObj);
+  await observeSpineTick({ intent: intentObj, spine, recordEvent });
 
   const procedure = getProcedureByIntent(intentObj.intent);
   if (!procedure) {
