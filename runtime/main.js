@@ -9,6 +9,8 @@ import readline from "node:readline";
 import fs from "node:fs";
 
 import { listenOnce } from "../capabilities/voice/listen.js";
+import { captureOnce } from "../capabilities/voice/mic.js";
+import { transcribeOnce } from "../capabilities/voice/stt.js";
 import { speakText } from "../capabilities/voice/speak.js";
 import { speak } from "../adapters/voice/speak.js";
 
@@ -25,6 +27,8 @@ import { initializeRecorder, recordEvent } from "../experience/recorder.js";
 import { loadAllEvents } from "../experience/stream.js";
 import { initializeStore } from "../memory/memoryStore.js";
 import { hasCapability, isAvailable, registerCapability } from "../capabilities/registry.js";
+
+const INPUT_MODE = process.env.ALIVE_INPUT_MODE || "stdin";
 
 function stdinTranscribe() {
   return new Promise(resolve => {
@@ -143,16 +147,71 @@ export async function runOnce() {
     });
   }
 
-  const pipedText = await getStdinTextIfPiped();
-  if (pipedText) {
-    console.log("[runtime] piped input:", pipedText);
+  // ---------------------------------------------------------------------
+  // Phase 15: explicit input mode selector (stdin | voice)
+  // ---------------------------------------------------------------------
+  if (INPUT_MODE !== "stdin" && INPUT_MODE !== "voice") {
+    const msg = `Invalid ALIVE_INPUT_MODE: ${INPUT_MODE}. Use stdin or voice.`;
+    console.error("[runtime]", msg);
+    await speakText({ text: msg, speak });
+    await recordEvent({
+      source: "system",
+      type: "input_failed",
+      payload: { source: INPUT_MODE, reason: "invalid_input_mode" },
+    });
+    return;
   }
-  const inputEvt = pipedText
-    ? { source: "human", type: "input", payload: { text: pipedText } }
-    : await listenOnce({ transcribe: stdinTranscribe });
-  await recordEvent({ source: "human", type: "input", payload: inputEvt.payload });
 
-  const { text } = inputEvt.payload;
+  let text = null;
+
+  if (INPUT_MODE === "stdin") {
+    const pipedText = await getStdinTextIfPiped();
+    if (pipedText) {
+      console.log("[runtime] piped input:", pipedText);
+    }
+    const inputEvt = pipedText
+      ? { source: "human", type: "input", payload: { text: pipedText } }
+      : await listenOnce({ transcribe: stdinTranscribe });
+    await recordEvent({ source: "human", type: "input", payload: inputEvt.payload });
+    text = inputEvt.payload.text;
+  } else {
+    // voice mode: exactly one capture -> one transcription -> one decision -> exit
+    try {
+      if (!isAvailable("voice.mic.captureOnce")) throw new Error("capability missing: voice.mic.captureOnce");
+      if (!isAvailable("voice.stt.transcribeOnce")) throw new Error("capability missing: voice.stt.transcribeOnce");
+
+      const audio = await captureOnce({ maxMs: 6000 });
+      const transcript = await transcribeOnce(audio);
+      if (!transcript || !String(transcript).trim()) throw new Error("transcription empty");
+
+      text = String(transcript).trim();
+
+      await recordEvent({
+        source: "system",
+        type: "input_received",
+        payload: { source: "voice", text },
+      });
+    } catch (err) {
+      const reason = String(err?.message || err);
+      const msg = `Voice input failed: ${reason}`;
+      console.error("[runtime]", msg);
+      await speakText({ text: msg, speak });
+      await recordEvent({
+        source: "system",
+        type: "input_failed",
+        payload: { source: "voice", reason },
+      });
+      return;
+    }
+  }
+
+  if (!text) {
+    const msg = "No input received.";
+    await speakText({ text: msg, speak });
+    await recordEvent({ source: "system", type: "input_failed", payload: { source: INPUT_MODE, reason: "empty" } });
+    return;
+  }
+
   const intentObj = translateTextToIntent(text);
 
   const turnId = `turn_${Date.now()}`;

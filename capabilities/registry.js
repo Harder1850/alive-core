@@ -205,6 +205,24 @@ tryRegisterBuiltin({
   availability: "available",
 });
 
+// Phase 15: gated, one-shot voice input path
+// These are intentionally narrower than stdin (no loops, no retries).
+tryRegisterBuiltin({
+  id: "voice.mic.captureOnce",
+  name: "Voice Mic Capture Once",
+  type: "hardware",
+  interface: { protocol: "microphone", method: "captureOnce" },
+  availability: "unknown",
+});
+
+tryRegisterBuiltin({
+  id: "voice.stt.transcribeOnce",
+  name: "Voice STT Transcribe Once",
+  type: "software",
+  interface: { protocol: "local-stt", method: "transcribeOnce" },
+  availability: "unknown",
+});
+
 tryRegisterBuiltin({
   id: "voice.speak",
   name: "Voice Speak",
