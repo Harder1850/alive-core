@@ -6,6 +6,7 @@
 // No loops. No learning. No inference.
 
 import readline from "node:readline";
+import fs from "node:fs";
 
 import { listenOnce } from "../capabilities/voice/listen.js";
 import { speakText } from "../capabilities/voice/speak.js";
@@ -29,6 +30,20 @@ function stdinTranscribe() {
       resolve(answer);
     });
   });
+}
+
+async function getStdinTextIfPiped() {
+  // Deterministic: either stdin is piped and already ended, or we fall back to prompt.
+  // No loops; reads at most one line.
+  if (process.stdin.isTTY) return null;
+
+  try {
+    const buf = await fs.promises.readFile(0, "utf8");
+    const line = String(buf).trim();
+    return line || null;
+  } catch {
+    return null;
+  }
 }
 
 function ensureBuiltinRuntimeCapabilities() {
@@ -112,7 +127,13 @@ export async function runOnce() {
   console.log(wakeMsg);
   await speakText({ text: wakeMsg, speak });
 
-  const inputEvt = await listenOnce({ transcribe: stdinTranscribe });
+  const pipedText = await getStdinTextIfPiped();
+  if (pipedText) {
+    console.log("[runtime] piped input:", pipedText);
+  }
+  const inputEvt = pipedText
+    ? { source: "human", type: "input", payload: { text: pipedText } }
+    : await listenOnce({ transcribe: stdinTranscribe });
   await recordEvent({ source: "human", type: "input", payload: inputEvt.payload });
 
   const { text } = inputEvt.payload;
@@ -155,9 +176,44 @@ export async function runOnce() {
     },
   });
 
+  // Phase 8: explicit demo site chaining (no background work)
+  const DEMO_WORTHY_INTENTS = new Set([
+    "organize_downloads",
+    "generate_demo_site",
+  ]);
+
+  let demoUpdated = false;
+  if (DEMO_WORTHY_INTENTS.has(procedure.intent) && procedure.intent !== "generate_demo_site") {
+    const demoProc = getProcedureByIntent("generate_demo_site");
+    if (!demoProc) {
+      throw new Error("demo chaining failed: generate_demo_site procedure not found");
+    }
+
+    if (demoProc.required_capabilities) {
+      for (const capId of demoProc.required_capabilities) {
+        if (!capabilities.isAvailable(capId)) {
+          throw new Error(`missing capability: ${capId}`);
+        }
+      }
+    }
+
+    const demoResult = await demoProc.execute({ capabilities, output });
+    demoUpdated = true;
+
+    await recordEvent({
+      source: "system",
+      type: "procedure_executed",
+      payload: {
+        procedureId: demoProc.id,
+        intent: demoProc.intent,
+        result: demoResult,
+      },
+    });
+  }
+
   const summary = result && typeof result === "object" && "moved" in result
-    ? `I completed the task. I moved ${result.moved} files and skipped ${result.skipped} files.`
-    : "I completed the task.";
+    ? `I organized your Downloads folder and moved ${result.moved} files. ${demoUpdated ? "I updated my demo." : ""}`.trim()
+    : `I completed the task. ${demoUpdated ? "I updated my demo." : ""}`.trim();
 
   await speakText({ text: summary, speak });
 }

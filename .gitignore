@@ -10,6 +10,9 @@ node_modules/
 .repo_root_dir.txt
 .repo_tree.txt
 
+# generated demo site output
+demo/
+
 # Local persistent memory (runtime artifact)
 alive_memory/
 dist/
