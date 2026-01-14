@@ -168,16 +168,17 @@ export async function runOnce() {
   const spine = new Spine();
   await observeSpineTick({ intent: intentObj, spine, recordEvent });
 
-  const procedure = getProcedureByIntent(intentObj.intent);
+  const firstIntent = Array.isArray(intentObj?.intents) ? intentObj.intents[0] : undefined;
+  const procedure = getProcedureByIntent(firstIntent);
   if (!procedure) {
     const msg = "I don’t know how to do that yet.";
     console.log(msg);
     await speakText({ text: msg, speak });
-    await recordEvent({ source: "system", type: "procedure_not_found", payload: { turnId, intent: intentObj.intent } });
+    await recordEvent({ source: "system", type: "procedure_not_found", payload: { turnId, intent: firstIntent } });
     await recordEvent({
       source: "system",
       type: "session_turn_ended",
-      payload: { intent: intentObj.intent, result: null },
+      payload: { intent: firstIntent, result: null },
     });
     return;
   }

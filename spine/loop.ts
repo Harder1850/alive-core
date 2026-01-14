@@ -23,16 +23,29 @@ export class Spine {
     this.conscious = new ConsciousWorkspace(maxConsciousItems);
   }
 
-  tick(input: unknown[]): void {
+  tick(input: unknown): { ok: true } {
     this.tickCount++;
 
-    const filtered = ingress(input);
-    this.conscious.integrate(filtered);
+    // Phase 12: deterministic multi-intent ticks.
+    // Accept either a legacy array input OR an object with intents[].
+    // Each intent is wrapped as a single-item array for ingress(), preserving its contract.
+    const intents: unknown[] = Array.isArray(input)
+      ? input
+      : ((input && typeof input === "object" && Array.isArray((input as any).intents))
+        ? (input as any).intents
+        : [input]);
 
-    const decisions = arbitrate(this.conscious.snapshot());
-    this.conscious.apply(decisions);
+    for (const intent of intents) {
+      const filtered = ingress([intent]);
+      this.conscious.integrate(filtered);
 
-    egress(this.conscious);
+      const decisions = arbitrate(this.conscious.snapshot());
+      this.conscious.apply(decisions);
+
+      egress(this.conscious);
+    }
+
+    return { ok: true };
   }
 
   getTickCount(): number {
