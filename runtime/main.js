@@ -14,6 +14,7 @@ import { speak } from "../adapters/voice/speak.js";
 
 import { translateTextToIntent } from "./intentTranslator.js";
 import { buildWakeNarrative } from "./wakeNarrative.js";
+import { loadSessionContext } from "./sessionContext.js";
 
 import { getProcedureByIntent } from "../procedures/store.js";
 
@@ -122,10 +123,22 @@ export async function runOnce() {
   initializeStore("./memory_data");
   ensureBuiltinRuntimeCapabilities();
 
+  const events = loadAllEvents();
+  const sessionContext = loadSessionContext(events);
+
   // Phase 6: wake narrative (read-only, deterministic)
-  const wakeMsg = buildWakeNarrative(loadAllEvents());
+  const wakeMsg = buildWakeNarrative(events);
   console.log(wakeMsg);
   await speakText({ text: wakeMsg, speak });
+
+  // Phase 9: deterministic acknowledgement only (no branching, no memory writes)
+  if (sessionContext.turnCount > 0) {
+    const lastIntent = sessionContext.recentIntents[sessionContext.recentIntents.length - 1];
+    await speakText({
+      text: `Earlier, I helped with ${String(lastIntent || "").replaceAll("_", " ")}.`,
+      speak,
+    });
+  }
 
   const pipedText = await getStdinTextIfPiped();
   if (pipedText) {
@@ -139,17 +152,29 @@ export async function runOnce() {
   const { text } = inputEvt.payload;
   const intentObj = translateTextToIntent(text);
 
+  const turnId = `turn_${Date.now()}`;
+  await recordEvent({
+    source: "system",
+    type: "session_turn_started",
+    payload: { timestamp: Date.now() },
+  });
+
   // Spine sees intent only (no raw language).
   // NOTE: spine is currently TypeScript-only in this repo (no JS loader).
   // For Phase 5, we record the tick request explicitly and keep execution deterministic.
-  await recordEvent({ source: "system", type: "spine_tick_requested", payload: { input: intentObj } });
+  await recordEvent({ source: "system", type: "spine_tick_requested", payload: { turnId, input: intentObj } });
 
   const procedure = getProcedureByIntent(intentObj.intent);
   if (!procedure) {
     const msg = "I don’t know how to do that yet.";
     console.log(msg);
     await speakText({ text: msg, speak });
-    await recordEvent({ source: "system", type: "procedure_not_found", payload: { intent: intentObj.intent } });
+    await recordEvent({ source: "system", type: "procedure_not_found", payload: { turnId, intent: intentObj.intent } });
+    await recordEvent({
+      source: "system",
+      type: "session_turn_ended",
+      payload: { intent: intentObj.intent, result: null },
+    });
     return;
   }
 
@@ -170,6 +195,7 @@ export async function runOnce() {
     source: "system",
     type: "procedure_executed",
     payload: {
+      turnId,
       procedureId: procedure.id,
       intent: procedure.intent,
       result,
@@ -204,6 +230,7 @@ export async function runOnce() {
       source: "system",
       type: "procedure_executed",
       payload: {
+        turnId,
         procedureId: demoProc.id,
         intent: demoProc.intent,
         result: demoResult,
@@ -216,6 +243,15 @@ export async function runOnce() {
     : `I completed the task. ${demoUpdated ? "I updated my demo." : ""}`.trim();
 
   await speakText({ text: summary, speak });
+
+  await recordEvent({
+    source: "system",
+    type: "session_turn_ended",
+    payload: {
+      intent: procedure.intent,
+      result,
+    },
+  });
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1].replace(/\\/g, "/")}`) {
