@@ -1,125 +1,198 @@
 # alive-core
-The authoritative cognitive core of the ALIVE system. Defines identity, continuity, arbitration, and memory invariants. No UI. No agents. No blocking.
 
-## 🚀 Demo: Continuity, Memory, and a Single Cognitive Core
+**A deterministic cognitive core for AI systems that persist, remember, and remain internally coherent across runs.**
 
-This repository is not a chatbot.
+alive-core is not a chatbot framework, not an agent swarm, and not a UI. It is the **irreducible nucleus** of a living AI system: a single authoritative loop that records experience, enforces invariants, and derives memory *after the fact*.
 
-It is the cognitive core of an AI system designed around a single, continuous stream of awareness with persistent experience and memory.
+Most AI systems reboot as amnesiacs. alive-core refuses to forget.
 
-This demo demonstrates continuity over time — the most important property missing from most AI systems.
+---
 
-## 🧠 What You’re Seeing
+## What Problem This Solves (Plain English)
 
-ALIVE-Core is built around three ideas:
+Modern AI systems are fundamentally **stateless**:
 
-### One Spine (Conscious Loop)
+* Restart the process → memory gone
+* Fork the agent → identity fractured
+* Inject tools → behavior drifts
 
-There is exactly one authoritative cognitive loop.
-No background agents decide anything. No committees. No hidden schedulers.
+alive-core fixes this by enforcing:
 
-### Experience ≠ Memory
+* **One spine** (authoritative cognition)
+* **One experience stream** (append-only, immutable)
+* **Derived memory** (never written directly)
+* **Hard invariants** (identity and safety cannot be violated)
 
-Everything that happens is recorded as experience (append-only).
-Memory is derived later through summarization and consolidation.
+This is infrastructure for AI that must:
 
-### Continuity Across Restarts
+* Survive restarts
+* Maintain continuity
+* Be audited
+* Be trusted
 
-The system does not “reset” when stopped.
-It wakes up, remembers, and continues.
+---
 
-## ▶️ Demo: Wake, Remember, Continue
+## Core Design Principles (Non‑Negotiable)
 
-### Step 1 — Start the system
+1. **Experience is primary**
+   Everything that happens is recorded. Nothing is overwritten.
 
-Run the system normally (local, offline supported).
+2. **Memory is derived, not written**
+   Memory is compressed, summarized, and extracted *from experience*.
 
-On startup, ALIVE-Core will wake up.
+3. **The spine is singular**
+   No competing loops. No swarm authority. No hidden autonomy.
 
-### Step 2 — Observe the wake-up narrative
+4. **Invariants are enforced, not implied**
+   Tests define what is impossible.
 
-Instead of starting blank, the system produces a brief narrative such as:
+5. **Core ≠ Capabilities**
+   Tools, UIs, agents, and automation live *outside* the core.
 
-“I’m back.
-Since I was last awake, I handled several user interactions, updated preferences, and recorded new experiences.
-Here’s what mattered most…”
+---
 
-This narrative is not prewritten and not stored verbatim.
-It is generated from an immutable experience stream recorded over time.
+## High‑Level Architecture
 
-### Step 3 — Interact normally
+```
+┌────────────┐
+│   Spine    │  ← single cognitive loop
+└─────┬──────┘
+      │ emits
+┌─────▼──────────────┐
+│ Experience Stream  │  ← append‑only log
+└─────┬──────────────┘
+      │ derives
+┌─────▼────────┐
+│   Memory     │  ← summaries, patterns, relevance
+└─────┬────────┘
+      │ informs
+┌─────▼────────────┐
+│ Capabilities /   │  ← tools, adapters, UIs (external)
+│ Adapters         │
+└──────────────────┘
+```
 
-Issue commands, provide input, or let the system operate within its allowed capabilities.
+The spine **never mutates memory directly**.
+The experience stream is the source of truth.
 
-All meaningful events are recorded as experience.
+---
 
-### Step 4 — Stop and restart
+## Repository Structure
 
-Shut the system down completely.
-Restart it later.
+```
+spine/          # Authoritative cognitive loop (locked)
+experience/    # Append-only experience recorder
+memory/        # STM / LTM derivation logic
+procedures/    # Declarative actions (no autonomy)
+runtime/       # Boot, lifecycle, shutdown
+kernel/        # Invariants, contracts, registries
+tests/         # Invariant enforcement (identity, safety)
+```
 
-On the next startup, ALIVE-Core again wakes up and explains what it remembers, maintaining continuity of identity and context.
+If a folder is locked, it stays locked.
 
-## 🧾 Why This Is Different
+---
 
-Most AI systems:
+## Quick Start (Minimal)
 
-- forget everything when restarted
-- treat history as disposable
-- mix cognition, memory, and execution together
-- rely on hidden background processes
+```ts
+import { AliveCore } from 'alive-core';
 
-ALIVE-Core:
+const core = new AliveCore({
+  persistencePath: './alive-data'
+});
 
-- enforces a single conscious loop
-- keeps experience immutable
-- derives memory intentionally
-- runs locally and offline
-- treats intelligence like an operating system, not a chat session
+await core.start();
 
-There is no “magic.”
-Everything is explicit, testable, and auditable.
+core.recordExperience({
+  type: 'system',
+  message: 'Core awakened'
+});
 
-## 🔌 Capabilities (Foundation for Expansion)
+console.log(core.status());
+```
 
-ALIVE-Core maintains a capability registry that describes what the system can control at any moment — software tools, hardware devices, or services.
+**Expected behavior:**
 
-The brain does not assume power.
-It asks: “What capabilities are available right now?”
+* A new experience entry is appended
+* No memory is directly written
+* Restarting the process resumes from prior experience
 
-This design allows the same cognitive core to:
+---
 
-- act as a personal assistant
-- operate a computer or OS
-- control a robot or vehicle
-- run fully offline on embedded hardware
+## Experience vs Memory (Critical Distinction)
 
-without changing the spine.
+**Experience**
 
-## 🧩 Current State
+* Immutable
+* Ordered
+* Lossless
+* Auditable
 
-Today, this system demonstrates:
+**Memory**
 
-- persistent experience
-- identity continuity
-- deterministic wake-up behavior
-- strict cognitive invariants
-- local execution without cloud dependency
+* Derived
+* Compressed
+* Fallible
+* Replaceable
 
-It is intentionally minimal — designed to be extended safely, not hacked together.
+If memory is wrong, regenerate it.
+If experience is wrong, your system is broken.
 
-## 🛣️ What Comes Next
+---
 
-This demo is the foundation for:
+## Invariants (Why This Is Safe)
 
-- long-term memory consolidation
-- natural language voice control
-- adaptive planning
-- multi-device operation
-- embodied systems (robots, vehicles)
+alive-core enforces invariants via tests, not promises:
 
-Those layers build on top of this core — not inside it.
+* No experience deletion
+* No direct memory mutation
+* No parallel spines
+* No autonomous execution
+* No hidden IO
 
-## ✨ One-Sentence Summary
+If an invariant fails, the system **must not boot**.
 
-ALIVE-Core is a system that remembers being alive.
+---
+
+## What This Is NOT
+
+* ❌ Not a chatbot
+* ❌ Not an agent swarm
+* ❌ Not auto‑GPT
+* ❌ Not self‑executing
+* ❌ Not magical
+
+This is **infrastructure**, not a personality.
+
+---
+
+## Who This Is For
+
+* Engineers building long‑running AI systems
+* Researchers studying continuity and identity
+* Safety‑critical automation designers
+* Anyone tired of amnesiac AI
+
+---
+
+## Status
+
+**Experimental, opinionated, and intentionally constrained.**
+
+If you want fast hacks, look elsewhere.
+If you want something that can last years, welcome.
+
+---
+
+## Next Docs (Planned)
+
+* Spine contract (formal)
+* Experience schema
+* Memory derivation algorithms
+* Adapter interface spec
+* Recovery & replay semantics
+
+---
+
+Built to stay alive.

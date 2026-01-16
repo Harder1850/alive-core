@@ -301,6 +301,103 @@ Authorization may allow or deny intents but may never execute them.
 
 Any expansion of Brain authority beyond authorization requires a new Spine Amendment Proposal.
 
+---
+
+## Phase 24 — Execution Adapter Receipt Contract (Frozen)
+
+**Status:** Ratified  
+**Scope:** Constitutional  
+**Authority:** Spine-adjacent (Experience Boundary)  
+**Change Control:** Spine Amendment Proposal (SAP) required
+
+### Purpose
+
+Phase 24 defines the **constitutional execution boundary** for ALIVE.
+
+It establishes that:
+- Execution adapters are **inert**
+- Execution is **not authority**
+- Execution artifacts are **validated experience**, not actions
+
+This phase exists to ensure that *no system claiming to be ALIVE may execute, imply execution, or accept execution artifacts without strict validation and auditability*.
+
+---
+
+### Constitutional Guarantees
+
+Under Phase 24, the following guarantees are binding:
+
+1. **No Execution Authority**
+   - Execution adapters **do not execute**
+   - They do not invoke procedures, capabilities, hardware, or services
+   - They are passive recipients only
+
+2. **Receipt-Only Semantics**
+   - Execution adapters may only emit **receipt artifacts**
+   - Receipts describe *what was presented*, not *what was done*
+
+3. **Schema-Enforced Receipts**
+   - All execution adapter receipts **must conform** to a ratified schema
+   - Malformed receipts are constitutionally invalid and must be rejected
+
+4. **Experience Is the Only Output**
+   - Execution adapter receipts are recorded as immutable experience
+   - No downstream behavior may be triggered by their presence
+
+5. **Determinism and Auditability**
+   - Receipt validation is deterministic
+   - Validation failures are explicit and attributable
+   - Silent acceptance is forbidden
+
+---
+
+### Canonical Receipt Event
+
+Phase 24 ratifies the following event as the **only valid execution adapter artifact**:
+
+- **Event Type:** `execution_adapter_received`
+
+This event:
+- records adapter receipt only
+- carries no executable handles
+- carries no implicit authority
+- cannot cause action
+
+Any deviation from the canonical schema constitutes a constitutional violation.
+
+---
+
+### Explicit Prohibitions
+
+Under Phase 24, the following are explicitly forbidden:
+
+- Executing authorized intents
+- Routing intents to procedures
+- Invoking capabilities
+- Treating adapter receipts as success signals
+- Introducing execution side effects
+- Adding autonomy at the adapter layer
+
+---
+
+### Amendment Rule
+
+**Any modification to Phase 24 semantics requires a Spine Amendment Proposal (SAP).**
+
+No runtime, plugin, adapter, or agent may weaken or bypass this boundary without explicit ratification.
+
+---
+
+### Binding Statement
+
+Phase 24 establishes that:
+
+> **ALIVE may acknowledge execution without performing it.**
+
+This boundary is permanent unless amended by constitutional process.
+
+---
+
 What to Do Next (Exact)
 
 Save this as:
