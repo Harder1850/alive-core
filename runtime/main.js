@@ -149,6 +149,21 @@ export async function runOnce() {
     },
   });
 
+  // ---------------------------------------------------------------------
+  // Phase 20: intent arbitration audit event (lawful elimination only)
+  // ---------------------------------------------------------------------
+  const arbitration = brain.arbitration || { survivingIntents: [], eliminated: [], failures: [] };
+  await recordEvent({
+    source: "system",
+    type: "intent_arbitration_completed",
+    payload: {
+      inputCount: typeof arbitration.inputCount === "number" ? arbitration.inputCount : 0,
+      survivingCount: Array.isArray(arbitration.survivingIntents) ? arbitration.survivingIntents.length : 0,
+      eliminated: arbitration.eliminated || [],
+      failures: arbitration.failures || [],
+    },
+  });
+
   const events = loadAllEvents();
   const sessionContext = loadSessionContext(events);
 

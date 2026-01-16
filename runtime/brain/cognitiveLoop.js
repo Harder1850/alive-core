@@ -5,6 +5,7 @@
 
 import { generateFromGoals } from "./intentGenerator.js";
 import { loadGoals } from "../../goals/store.js";
+import { arbitrateIntents } from "./arbitration.js";
 
 /**
  * Minimal B1 wiring for Phase 19.
@@ -21,9 +22,18 @@ export function brainTick({ goals }) {
     ? candidateIntents.failures
     : [];
 
+  // Phase 20: lawful elimination only (no execution, no ranking).
+  const arbitration = arbitrateIntents({
+    candidateIntents,
+    workspaceSnapshot: null,
+    constraintsSnapshot: null,
+    capabilitiesSnapshot: null,
+  });
+
   return {
     reflections: [],
-    candidateIntents,
-    failures,
+    candidateIntents: arbitration.survivingIntents,
+    failures: [...failures, ...(arbitration.failures || [])],
+    arbitration,
   };
 }
