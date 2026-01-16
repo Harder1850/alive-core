@@ -5,6 +5,8 @@
 // Pure, read-only analysis over an in-memory experience event list.
 // No IO. No runtime wiring. No execution.
 
+import { selectAdapterIdLexicographicFirst } from "./policy.js";
+
 /**
  * Resolve which registered execution adapters declare support for a given intent type.
  *
@@ -58,3 +60,43 @@ export function resolveEligibleExecutionAdapters(intentType, events) {
   }
 }
 
+/**
+ * Phase 27: adapter selection envelope.
+ *
+ * Selection is descriptive metadata only. It must not enable execution.
+ * The envelope contains only primitive data.
+ *
+ * @param {string} intentType
+ * @param {any[]} events
+ * @returns {{
+ *   intentType: string,
+ *   eligibleAdapterIds: string[],
+ *   selectedAdapterId: string|null,
+ *   policy: "lexicographic-first",
+ *   note: "Selection is descriptive only"
+ * }}
+ */
+export function buildAdapterSelectionEnvelope(intentType, events) {
+  try {
+    const eligibility = resolveEligibleExecutionAdapters(intentType, events);
+    const eligibleAdapterIds = Array.isArray(eligibility.eligibleAdapterIds) ? eligibility.eligibleAdapterIds : [];
+
+    const selectedAdapterId = selectAdapterIdLexicographicFirst(eligibleAdapterIds);
+
+    return {
+      intentType: typeof intentType === "string" ? intentType : "",
+      eligibleAdapterIds,
+      selectedAdapterId,
+      policy: "lexicographic-first",
+      note: "Selection is descriptive only",
+    };
+  } catch {
+    return {
+      intentType: typeof intentType === "string" ? intentType : "",
+      eligibleAdapterIds: [],
+      selectedAdapterId: null,
+      policy: "lexicographic-first",
+      note: "Selection is descriptive only",
+    };
+  }
+}

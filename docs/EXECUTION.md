@@ -64,6 +64,48 @@ It answers one question only:
 Registration does **not** enable execution, selection, routing, or intent handling.
 Adapters remain inert.
 
+---
+
+# Phase 27 — Adapter Selection Envelope (Descriptive Only)
+
+## Purpose
+
+Phase 27 introduces a **selection envelope** that describes a deterministic selection outcome **without** enabling execution.
+
+Selection is **descriptive metadata**, not control flow.
+
+## Policy (Locked)
+
+Default (and only) policy in Phase 27:
+
+- `lexicographic-first`
+
+If no eligible adapters exist:
+
+- `selectedAdapterId === null`
+
+## Envelope Contract
+
+The selection envelope is inert by construction:
+- no functions
+- no callables
+- no references to runtime objects
+
+It contains only primitive data:
+
+- `intentType`
+- `eligibleAdapterIds`
+- `selectedAdapterId`
+- `policy`
+- `note`
+
+## Explicit Non-Authorization
+
+Eligibility ≠ selection.  
+Selection ≠ execution.
+
+Adapters remain inert.
+
 ## Canonical Registration Event
 
 - **type**: `execution_adapter_registered`
