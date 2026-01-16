@@ -6,6 +6,29 @@ alive-core is not a chatbot framework, not an agent swarm, and not a UI. It is t
 
 Most AI systems reboot as amnesiacs. alive-core refuses to forget.
 
+## Project Status — Frozen at Phase 27
+
+ALIVE Core is intentionally frozen at Phase 27.
+
+Phases 23–27 establish a complete, deterministic, and auditable decision substrate without execution or authority.
+
+The system can:
+
+- record experience
+- declare adapter identity
+- validate receipts
+- resolve eligibility
+- describe adapter selection
+
+The system cannot:
+
+- execute intents
+- invoke adapters
+- authorize behavior
+- schedule actions
+
+Any work beyond Phase 27 (including execution or authorization) requires an explicit constitutional amendment.
+
 ---
 
 ## What Problem This Solves (Plain English)

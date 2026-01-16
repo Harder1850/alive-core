@@ -23,3 +23,18 @@ the change is wrong.
 Violating invariants is a bug,
 even if tests pass.
 
+## Constitutional Constraints
+
+Contributors must not:
+
+- add execution logic
+- add invocation paths
+- add authorization semantics
+- wire adapters to runtime
+
+Any work proposing execution must:
+
+- reference a future Phase 28+
+- be rejected unless explicitly authorized
+
+ALIVE Core is not an agent framework. It is a governed cognitive substrate.

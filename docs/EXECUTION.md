@@ -66,6 +66,29 @@ Adapters remain inert.
 
 ---
 
+## Phase Freeze — Execution Boundary
+
+- Phase 23 — Adapter existence (inert)
+- Phase 24 — Receipt validation
+- Phase 25 — Adapter identity (immutable)
+- Phase 26 — Eligibility resolution
+- Phase 27 — Selection description (non-binding)
+
+Phase 27 is the final authorized phase.
+
+No execution, invocation, or authorization exists in ALIVE Core.
+No phase beyond Phase 27 is implemented or permitted.
+
+Any introduction of execution semantics requires:
+
+- A new phase authorization
+- A formal execution authorization envelope
+- Explicit runtime gating
+
+This section is normative, not descriptive.
+
+---
+
 # Phase 27 — Adapter Selection Envelope (Descriptive Only)
 
 ## Purpose
