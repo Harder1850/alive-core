@@ -181,6 +181,28 @@ export async function runOnce() {
     },
   });
 
+  // ---------------------------------------------------------------------
+  // Phase 22: Post-Authorization Surfacing (runtime-only; non-authoritative)
+  // ---------------------------------------------------------------------
+  // Authorized intents are not executed in Phase 22.
+  // Execution is prohibited until a future phase.
+  if (process.env.ALIVE_DEBUG_AUTHZ === "1") {
+    const authorizedCount = Array.isArray(authorization.authorizedIntents)
+      ? authorization.authorizedIntents.length
+      : 0;
+    const denied = Array.isArray(authorization.denied) ? authorization.denied : [];
+
+    console.log("[authz] authorizedCount:", authorizedCount);
+    if (denied.length > 0) {
+      console.log("[authz] denied:");
+      for (const d of denied) {
+        const intentId = d && typeof d.intentId === "string" ? d.intentId : "(unknown)";
+        const reason = d && typeof d.reason === "string" ? d.reason : "(unknown)";
+        console.log(`- ${intentId}: ${reason}`);
+      }
+    }
+  }
+
   const events = loadAllEvents();
   const sessionContext = loadSessionContext(events);
 

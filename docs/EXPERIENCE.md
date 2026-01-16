@@ -67,3 +67,27 @@ A live “experience stream” is:
 
 Streaming experience does not alter cognition.
 
+---
+
+## Canonical Authorization Denial Reasons (Phase 22)
+
+The runtime records authorization outcomes using `intent_authorization_completed`.
+
+Denial reasons are stable string codes that explain why an intent was not authorized.
+
+Canonical reason codes (documented; not enforced here):
+
+### Arbitration-stage elimination (Phase 20)
+- `invalid_intent_shape`
+- `constraint_violation`
+- `exclusive_key_conflict`
+
+### Authorization-stage denial (Phase 21)
+- `not_explicitly_authorized`
+- `missing_required_capability`
+- `missing_capability_declaration`
+- `capability_unavailable:<capabilityId>`
+- `capability_explicitly_denied`
+- `authorization_metadata_missing`
+- `authority_boundary_violation`
+- `authorization_scope_violation`
