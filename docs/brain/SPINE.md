@@ -254,6 +254,53 @@ Anything that bypasses it is not ALIVE.
 
 **End of Constitutional Definition**
 
+---
+
+## Phase 21 — Authorization (Frozen Constitutional Boundary)
+
+**Status:** Ratified & Frozen  
+**Scope:** Brain Authority Ceiling
+
+Phase 21 is ratified.
+
+Authorization is the final authority ceiling.
+
+The Brain may:
+- authorize
+- deny
+- explain
+
+The Brain may not:
+- execute
+- schedule
+- retry
+- route
+- invoke capabilities
+- mutate authority
+
+Authorization is:
+- deterministic
+- synchronous
+- single-tick
+- side-effect-free
+
+Explicit denial is a valid, stable outcome.
+
+Any modification to Phase 21 semantics requires a Spine Amendment Proposal (SAP).
+
+---
+
+### SAP-021 — Freeze Authorization Boundary (Phase 21)
+
+Status: Ratified  
+Type: Constitutional Freeze  
+Scope: Brain Authority
+
+This amendment freezes Phase 21 Authorization as the maximum authority the Brain may exercise.
+Authorization may allow or deny intents but may never execute them.
+
+Any expansion of Brain authority beyond authorization requires a new Spine Amendment Proposal.
+
 What to Do Next (Exact)
 
 Save this as:
