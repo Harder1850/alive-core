@@ -19,6 +19,8 @@ import { buildWakeNarrative } from "./wakeNarrative.js";
 import { loadSessionContext } from "./sessionContext.js";
 import { observeSpineTick } from "./spineObserver.js";
 
+import { brainTick } from "./brain/cognitiveLoop.js";
+
 import { Spine } from "../dist/spine/loop.js";
 
 import { getProcedureByIntent } from "../procedures/store.js";
@@ -129,6 +131,23 @@ export async function runOnce() {
   initializeRecorder({ dataDir: ".alive-data" });
   initializeStore("./memory_data");
   ensureBuiltinRuntimeCapabilities();
+
+  // ---------------------------------------------------------------------
+  // Phase 19: Goal → Intent translation (non-executing; proposal-only)
+  // ---------------------------------------------------------------------
+  // IMPORTANT: This produces candidate intents for recording only.
+  // It must not execute, route, rank, or send intents to the Spine.
+  const brain = brainTick({});
+
+  await recordEvent({
+    source: "system",
+    type: "intent_candidates_proposed",
+    payload: {
+      count: brain.candidateIntents.length,
+      candidates: brain.candidateIntents,
+      failures: brain.failures ?? [],
+    },
+  });
 
   const events = loadAllEvents();
   const sessionContext = loadSessionContext(events);
