@@ -91,3 +91,50 @@ Once an `adapterId` has been registered, any subsequent registration using the s
 **Registration ≠ execution.**
 
 Execution adapters remain inert in Phase 25.
+
+---
+
+# Phase 26 — Intent → Adapter Eligibility Resolution (Read-Only)
+
+## Purpose
+
+Phase 26 introduces a **pure eligibility resolver** that answers:
+
+> Which registered execution adapters declare support for this intent type?
+
+This phase provides deterministic, auditable visibility into adapter–intent compatibility.
+
+It does **not**:
+- select an adapter
+- execute an intent
+- authorize behavior
+- modify runtime control flow
+
+## Resolver Contract
+
+`experience/query.js` exports:
+
+```js
+export function resolveEligibleExecutionAdapters(intentType, events) {
+  return {
+    eligibleAdapterIds: string[],
+    reason: "declared-compatibility"
+  }
+}
+```
+
+### Semantics
+
+- Eligibility is based only on `execution_adapter_registered` declarations.
+- An adapter is eligible only if `acceptedIntentTypes` explicitly includes `intentType`.
+- `acceptedIntentTypes: []` means **no declared support** (NOT a wildcard).
+- Returned `eligibleAdapterIds` are:
+  - unique
+  - lexicographically sorted
+
+## Explicit Non-Authorization
+
+Eligibility ≠ selection.  
+Selection ≠ execution.
+
+Adapters remain inert.
