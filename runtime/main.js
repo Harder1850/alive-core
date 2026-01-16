@@ -21,6 +21,8 @@ import { observeSpineTick } from "./spineObserver.js";
 
 import { brainTick } from "./brain/cognitiveLoop.js";
 
+import { receiveAuthorizedIntents } from "./execution/adapter.js";
+
 import { Spine } from "../dist/spine/loop.js";
 
 import { getProcedureByIntent } from "../procedures/store.js";
@@ -202,6 +204,33 @@ export async function runOnce() {
       }
     }
   }
+
+  // ---------------------------------------------------------------------
+  // Phase 23: Execution Adapters (Zero Autonomy, Lawful Plumbing Only)
+  // ---------------------------------------------------------------------
+  // Phase 23 SAFETY GUARANTEE:
+  // Execution adapters do not execute intents.
+  // Any execution before a future authorized phase is a violation.
+  const tickId = `tick_${Date.now()}`;
+  const adapterReceipt = receiveAuthorizedIntents({
+    intents: Array.isArray(authorization.authorizedIntents) ? authorization.authorizedIntents : [],
+    tickId,
+    timestamp: Date.now(),
+  });
+
+  await recordEvent({
+    source: "system",
+    type: "execution_adapter_received",
+    payload: {
+      inputCount: Array.isArray(authorization.authorizedIntents) ? authorization.authorizedIntents.length : 0,
+      acceptedCount: typeof adapterReceipt?.acceptedCount === "number" ? adapterReceipt.acceptedCount : 0,
+      rejected: Array.isArray(adapterReceipt?.rejected) ? adapterReceipt.rejected : [],
+      note:
+        adapterReceipt && typeof adapterReceipt.note === "string"
+          ? adapterReceipt.note
+          : "Execution adapters are inert in Phase 23",
+    },
+  });
 
   const events = loadAllEvents();
   const sessionContext = loadSessionContext(events);
