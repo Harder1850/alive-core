@@ -33,7 +33,7 @@ export function brainTick({ goals }) {
 
   // Phase 21: lawful permission only (non-executing).
   const authorization = authorizeIntents({
-    survivingIntents: arbitration.survivingIntents,
+    candidateIntents: arbitration.survivingIntents,
     workspaceSnapshot: null,
     constraintsSnapshot: null,
     capabilitiesSnapshot: null,

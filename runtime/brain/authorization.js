@@ -20,6 +20,10 @@ function toStringArray(v) {
   return out;
 }
 
+function hasExplicitArrayProp(obj, prop) {
+  return isRecord(obj) && Object.prototype.hasOwnProperty.call(obj, prop) && Array.isArray(obj[prop]);
+}
+
 function hasCapability(capabilitiesSnapshot, capId) {
   if (!isNonEmptyString(capId)) return false;
 
@@ -54,36 +58,32 @@ function hasCapability(capabilitiesSnapshot, capId) {
   return false;
 }
 
-function isExplicitlyDeniedByPolicy(constraintsSnapshot, intent) {
-  // Supported explicit shapes (no inference):
-  // - { deniedIntentIds: string[] }
-  // - { rejectedIntentIds: string[] } (Phase 20 compatibility)
-  if (!isRecord(constraintsSnapshot) || !isRecord(intent) || !isNonEmptyString(intent.id)) return false;
+function isScopeAuthorized(authorizationScope, constraintsSnapshot) {
+  // Deterministic, explicit-only scope gate.
+  // Supported explicit shapes:
+  // - constraintsSnapshot.allowedAuthorizationScopes: string[]
+  // - constraintsSnapshot.maxAuthorizationScope: string
+  // If neither is present, only "runtime" scope is permitted (conservative default).
 
-  const id = intent.id;
-  if (Array.isArray(constraintsSnapshot.deniedIntentIds) && constraintsSnapshot.deniedIntentIds.includes(id)) {
-    return true;
+  if (!isNonEmptyString(authorizationScope)) return true;
+
+  const scopeOrder = ["runtime", "session", "user", "system"];
+  const idx = scopeOrder.indexOf(authorizationScope);
+  if (idx === -1) return false;
+
+  if (isRecord(constraintsSnapshot)) {
+    if (Array.isArray(constraintsSnapshot.allowedAuthorizationScopes)) {
+      return constraintsSnapshot.allowedAuthorizationScopes.includes(authorizationScope);
+    }
+
+    if (isNonEmptyString(constraintsSnapshot.maxAuthorizationScope)) {
+      const maxIdx = scopeOrder.indexOf(constraintsSnapshot.maxAuthorizationScope);
+      if (maxIdx === -1) return false;
+      return idx <= maxIdx;
+    }
   }
-  if (Array.isArray(constraintsSnapshot.rejectedIntentIds) && constraintsSnapshot.rejectedIntentIds.includes(id)) {
-    return true;
-  }
-  return false;
-}
 
-function isUnauthorizedScope(intent) {
-  // Structural mapping only (deterministic):
-  // - If intent.payload.scope is one of these forbidden labels
-  // - OR if intent.payload.kind is one of these forbidden kinds
-  // No heuristics, no ranking.
-  if (!isRecord(intent) || !isRecord(intent.payload)) return false;
-
-  const scope = intent.payload.scope;
-  if (scope === "filesystem.write" || scope === "network.call" || scope === "system.mutate") return true;
-
-  const kind = intent.payload.kind;
-  if (kind === "filesystem_write" || kind === "network_call" || kind === "system_mutation") return true;
-
-  return false;
+  return authorizationScope === "runtime";
 }
 
 /**
@@ -98,7 +98,7 @@ function isUnauthorizedScope(intent) {
  * Never throws.
  */
 export function authorizeIntents({
-  survivingIntents,
+  candidateIntents,
   workspaceSnapshot,
   constraintsSnapshot,
   capabilitiesSnapshot,
@@ -109,40 +109,55 @@ export function authorizeIntents({
   const denied = [];
   const authorizedIntents = [];
 
-  const intents = Array.isArray(survivingIntents) ? survivingIntents : [];
+  const intents = Array.isArray(candidateIntents) ? candidateIntents : [];
 
   for (let i = 0; i < intents.length; i++) {
     const intent = intents[i];
 
     // Keep authorization deterministic and non-throwing even if input is malformed.
     if (!isRecord(intent) || !isNonEmptyString(intent.id)) {
-      denied.push({ intentId: "(unknown)", reason: "missing_capability" });
+      denied.push({ intentId: "(unknown)", reason: "missing_capability_declaration" });
       continue;
     }
 
-    // A1 — Capability Declaration Check (existence only)
-    const requiredCapabilities = toStringArray(intent.requiredCapabilities);
-    let missing = null;
+    // A1 — Capability Declaration Required
+    // If requiresCapabilities is absent (not explicitly declared), deny.
+    if (!hasExplicitArrayProp(intent, "requiresCapabilities")) {
+      denied.push({ intentId: intent.id, reason: "missing_capability_declaration" });
+      continue;
+    }
+
+    // A2 — Capability Availability (existence only)
+    const requiredCapabilities = toStringArray(intent.requiresCapabilities);
+    let missingCap = null;
     for (const capId of requiredCapabilities) {
       if (!hasCapability(capabilitiesSnapshot, capId)) {
-        missing = capId;
+        missingCap = capId;
         break;
       }
     }
-    if (missing) {
-      denied.push({ intentId: intent.id, reason: "missing_capability" });
+    if (missingCap) {
+      denied.push({ intentId: intent.id, reason: `capability_unavailable:${missingCap}` });
       continue;
     }
 
-    // A2 — Explicit Policy / Constitution Check (explicit only)
-    if (isExplicitlyDeniedByPolicy(constraintsSnapshot, intent)) {
-      denied.push({ intentId: intent.id, reason: "policy_violation" });
-      continue;
+    // A3 — Explicit Capability Denial
+    if (hasExplicitArrayProp(intent, "deniesCapabilities")) {
+      const denies = toStringArray(intent.deniesCapabilities);
+      for (const capId of denies) {
+        if (hasCapability(capabilitiesSnapshot, capId)) {
+          denied.push({ intentId: intent.id, reason: "capability_explicitly_denied" });
+          break;
+        }
+      }
+      if (denied.length > 0 && denied[denied.length - 1].intentId === intent.id) continue;
     }
 
-    // A3 — Authorization Scope Check (structural mapping only)
-    if (isUnauthorizedScope(intent)) {
-      denied.push({ intentId: intent.id, reason: "unauthorized_scope" });
+    // A4 — Authorization Scope (If Present)
+    if (Object.prototype.hasOwnProperty.call(intent, "authorizationScope")
+      && isNonEmptyString(intent.authorizationScope)
+      && !isScopeAuthorized(intent.authorizationScope, constraintsSnapshot)) {
+      denied.push({ intentId: intent.id, reason: "authorization_scope_violation" });
       continue;
     }
 
@@ -151,4 +166,3 @@ export function authorizeIntents({
 
   return { authorizedIntents, denied, failures };
 }
-
