@@ -49,3 +49,45 @@ Every runtime tick records an experience event:
 
 This event is recorded even when `inputCount = 0`.
 
+---
+
+# Phase 25 — Execution Adapter Registration (Declarative Only)
+
+## Purpose
+
+Phase 25 introduces a **declarative** registration mechanism for execution adapters.
+
+It answers one question only:
+
+> What adapters exist, and what do they claim to accept?
+
+Registration does **not** enable execution, selection, routing, or intent handling.
+Adapters remain inert.
+
+## Canonical Registration Event
+
+- **type**: `execution_adapter_registered`
+
+### Payload Contract
+
+The payload is valid only if it contains:
+
+- `adapterId` (string, non-empty)
+  - must be globally unique
+  - once registered, may never appear again
+- `acceptedIntentTypes` (array of non-empty strings)
+  - the array may be empty
+- `declaredAt` (ISO 8601 timestamp string)
+  - must parse to a valid date
+- `note` (string)
+  - must equal exactly: `Execution adapters are inert and declarative only`
+
+## Invariant: Adapter Identity Is Immutable
+
+Once an `adapterId` has been registered, any subsequent registration using the same `adapterId` is invalid.
+
+## Reminder (Binding)
+
+**Registration ≠ execution.**
+
+Execution adapters remain inert in Phase 25.
