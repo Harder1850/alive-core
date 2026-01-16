@@ -6,6 +6,7 @@
 import { generateFromGoals } from "./intentGenerator.js";
 import { loadGoals } from "../../goals/store.js";
 import { arbitrateIntents } from "./arbitration.js";
+import { authorizeIntents } from "./authorization.js";
 
 /**
  * Minimal B1 wiring for Phase 19.
@@ -30,10 +31,23 @@ export function brainTick({ goals }) {
     capabilitiesSnapshot: null,
   });
 
+  // Phase 21: lawful permission only (non-executing).
+  const authorization = authorizeIntents({
+    survivingIntents: arbitration.survivingIntents,
+    workspaceSnapshot: null,
+    constraintsSnapshot: null,
+    capabilitiesSnapshot: null,
+  });
+
   return {
     reflections: [],
-    candidateIntents: arbitration.survivingIntents,
-    failures: [...failures, ...(arbitration.failures || [])],
+    candidateIntents: authorization.authorizedIntents,
+    failures: [
+      ...failures,
+      ...(arbitration.failures || []),
+      ...(authorization.failures || []),
+    ],
     arbitration,
+    authorization,
   };
 }

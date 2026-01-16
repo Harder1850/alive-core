@@ -164,6 +164,23 @@ export async function runOnce() {
     },
   });
 
+  // ---------------------------------------------------------------------
+  // Phase 21: intent authorization audit event (lawful permission only)
+  // ---------------------------------------------------------------------
+  const authorization = brain.authorization || { authorizedIntents: [], denied: [], failures: [] };
+  await recordEvent({
+    source: "system",
+    type: "intent_authorization_completed",
+    payload: {
+      inputCount: Array.isArray(arbitration.survivingIntents) ? arbitration.survivingIntents.length : 0,
+      authorizedCount: Array.isArray(authorization.authorizedIntents)
+        ? authorization.authorizedIntents.length
+        : 0,
+      denied: authorization.denied || [],
+      failures: authorization.failures || [],
+    },
+  });
+
   const events = loadAllEvents();
   const sessionContext = loadSessionContext(events);
 
