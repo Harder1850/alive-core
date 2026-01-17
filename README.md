@@ -2,6 +2,14 @@
 
 **A deterministic cognitive core for AI systems that persist, remember, and remain internally coherent across runs.**
 
+## Demo
+
+See [DEMO.md](./DEMO.md) for a reproducible terminal walkthrough demonstrating:
+
+- identity continuity
+- lawful refusal
+- Phase-27 freeze
+
 alive-core is not a chatbot framework, not an agent swarm, and not a UI. It is the **irreducible nucleus** of a living AI system: a single authoritative loop that records experience, enforces invariants, and derives memory *after the fact*.
 
 Most AI systems reboot as amnesiacs. alive-core refuses to forget.

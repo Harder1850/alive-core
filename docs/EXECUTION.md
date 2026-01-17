@@ -87,6 +87,8 @@ Any introduction of execution semantics requires:
 
 This section is normative, not descriptive.
 
+The canonical demonstration of Phase-27 behavior is documented in DEMO.md.
+
 ---
 
 # Phase 27 — Adapter Selection Envelope (Descriptive Only)

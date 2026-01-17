@@ -18,6 +18,5 @@ Eligibility (Phase 26)
   ↓
 Selection Description (Phase 27)
   ↓
-[ HARD STOP — NO EXECUTION ]
+[ DEMO STOPS HERE — NO EXECUTION ]
 ```
-
