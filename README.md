@@ -1,5 +1,18 @@
 # alive-core
 
+## 🔒 Project Status — Frozen at Phase 27
+
+**alive-core is intentionally frozen at Phase 27.**
+
+This repository defines the authoritative cognitive core of the ALIVE system:
+identity, continuity, arbitration, authorization, and explanation — **without execution**.
+
+No new features, execution paths, or autonomy will be added without a
+formal constitutional amendment and an explicitly authorized Phase 28.
+
+All active experimentation now occurs outside this repository
+(e.g. in host or body implementations).
+
 **A deterministic cognitive core for AI systems that persist, remember, and remain internally coherent across runs.**
 
 ## Demo
