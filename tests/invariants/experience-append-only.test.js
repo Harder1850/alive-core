@@ -6,6 +6,14 @@ import { initializeRecorder, recordEvent, getEventsFilePath } from "../../experi
 // Use a test-specific data dir to avoid polluting local state
 initializeRecorder({ dataDir: ".alive-data-test", filename: "events.jsonl" });
 
+// Ensure a clean slate for this invariant run.
+// (Invariants should be deterministic even across repeated runs.)
+try {
+  fs.writeFileSync(getEventsFilePath(), "", "utf8");
+} catch {
+  // ignore
+}
+
 const eventsFile = getEventsFilePath();
 
 function readLines() {

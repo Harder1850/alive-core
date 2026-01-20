@@ -30,7 +30,14 @@ export function isInitialized() {
 }
 
 export function initializeRecorder({ dataDir = ".alive-data", filename = "events.jsonl" } = {}) {
-  _dataDir = path.resolve(process.cwd(), dataDir);
+  // Persistence location (auditable / inspectable):
+  // - Default: <process.cwd()>/.alive-data/events.jsonl
+  // - Override: set ALIVE_DATA_DIR (absolute or relative)
+  //
+  // This MUST remain deterministic and append-only.
+  const effectiveDir = process.env.ALIVE_DATA_DIR || dataDir;
+
+  _dataDir = path.resolve(process.cwd(), effectiveDir);
   _eventsFile = path.join(_dataDir, filename);
 
   fs.mkdirSync(_dataDir, { recursive: true });

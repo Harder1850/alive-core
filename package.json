@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:invariants": "node tests/invariants/run.js",
+    "test": "npm run test:invariants",
+    "verify:experience": "node scripts/verify-experience-persistence.mjs",
     "build:spine": "tsc -p tsconfig.spine.json --rewriteRelativeImportExtensions && node scripts/fix-spine-imports.mjs"
   },
   "bin": {

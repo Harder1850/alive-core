@@ -195,6 +195,50 @@ If experience is wrong, your system is broken.
 
 ---
 
+## Local Experience Persistence (Auditable)
+
+alive-core persists **experience** as an append-only JSONL log on disk.
+
+### Default path
+
+By default, when the runtime calls `initializeRecorder()`, events are stored at:
+
+```
+<process.cwd()>/.alive-data/events.jsonl
+```
+
+This file is:
+
+- **append-only** (never rewritten)
+- **immutable in intent** (no edits/reordering)
+- **inspectable** (newline-delimited JSON)
+
+### Continuity across restarts
+
+On startup, the recorder loads existing events from `events.jsonl` into a replay-safe in-memory cache,
+and all new events are appended to the same file. Restarting the process does **not** reset the log.
+
+### Override the data directory (optional)
+
+You can override the experience directory without changing default behavior by setting:
+
+```
+ALIVE_DATA_DIR=./my-alive-data
+```
+
+The recorder resolves this relative to `process.cwd()`.
+
+### Quick audit command
+
+Run this twice; the line count must increase by 1 each run:
+
+```bash
+npm run verify:experience
+```
+
+
+---
+
 ## Invariants (Why This Is Safe)
 
 alive-core enforces invariants via tests, not promises:
