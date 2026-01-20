@@ -121,6 +121,16 @@ The experience stream is the source of truth.
 
 ---
 
+## Repository Scope
+
+alive-core implements the ALIVE Brain only.
+It cannot access the network, invoke tools, execute actions, or interface with the world.
+All embodiment occurs in alive-body.
+
+The separation between alive-core and alive-body is a safety boundary, not an organizational choice.
+
+---
+
 ## Repository Structure
 
 ```
