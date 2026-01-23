@@ -1,0 +1,63 @@
+
+Running adapter-selection-envelope.test.js
+
+Running cognition-layer-readonly.test.js
+
+Running confidence-layer-readonly.test.js
+
+Running execution-adapter-registration.test.js
+
+Running experience-append-only.test.js
+[32m✔ Cognition, Creativity, Ethics & Learning Stack is repo-versioned and runtime-readonly (no mutation) [90m(0.6434ms)[39m[39m
+[32m✔ Confidence & Calibration layer is repo-versioned, markdown-only, and contains invariants [90m(0.3106ms)[39m[39m
+[32m✔ Confidence layer invariants: no certainty inflation language [90m(1.9618ms)[39m[39m
+✔ experience-append-only invariant holds
+
+Running governance-layer-readonly.test.js
+
+Running idl-no-execution-no-io.test.js
+✔ idl-no-execution-no-io invariant holds
+
+Running idl-specialists-readonly.test.js
+✔ idl-specialists-readonly invariant holds
+
+Running idl-terminates.test.js
+✔ idl-terminates invariant holds
+
+Running intent-adapter-eligibility.test.js
+
+Running intent-integrity-layer-readonly.test.js
+
+Running no-external-imports.test.js
+✔ no-external-imports invariant holds
+
+Running no-invented-authorities.test.js
+
+Running no-science-constants-or-protocols.test.js
+
+Running reference-layer-readonly.test.js
+
+Running science-layer-readonly.test.js
+
+Running single-loop.test.js
+✔ single-loop invariant holds
+
+Running spine-no-blocking.test.js
+✔ spine-no-blocking invariant holds
+[32m✔ Governance & Human Systems Intuition Stack is repo-versioned and runtime-readonly (no mutation) [90m(0.2678ms)[39m[39m
+[32m✔ Intent Integrity & Misuse Detection Stack is repo-versioned, markdown-only, and contains invariants [90m(0.5294ms)[39m[39m
+[32m✔ Intent integrity layer is documentation-only (no execution hooks / code artifacts) [90m(0.9984ms)[39m[39m
+[32m✔ Intent integrity invariants: advisory, non-enforcing, clarification-first [90m(1.4798ms)[39m[39m
+[32m✔ Intent integrity docs include integration rules and clarification path (demonstrable behavior) [90m(3.1162ms)[39m[39m
+[32m✔ Rapid Reference & Sanity Layer provides explicit authorities (no invented sources) [90m(0.4566ms)[39m[39m
+[32m✔ Science stack contains no constants, dosages, or step-by-step protocols [90m(4.0341ms)[39m[39m
+[32m✔ Rapid Reference & Sanity Layer is repo-versioned and runtime-readonly (no mutation) [90m(0.191ms)[39m[39m
+[32m✔ Science & Technology Intuition Stack is repo-versioned and runtime-readonly [90m(0.1578ms)[39m[39m
+[34mℹ tests 12[39m
+[34mℹ suites 0[39m
+[34mℹ pass 12[39m
+[34mℹ fail 0[39m
+[34mℹ cancelled 0[39m
+[34mℹ skipped 0[39m
+[34mℹ todo 0[39m
+[34mℹ duration_ms 84.2011[39m
