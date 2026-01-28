@@ -1,0 +1,19 @@
+# Core Epistemic Knowledge (alive-core)
+
+This directory defines ALIVE-core’s innate epistemic structure.
+
+These files:
+- Do NOT contain factual knowledge
+- Do NOT change at runtime
+- Do NOT execute logic
+- Do NOT grow
+- Do NOT encode domains
+
+They define how the core:
+- interprets memory
+- weights confidence
+- handles uncertainty
+- detects error
+- avoids false certainty
+
+This is analogous to human cognitive instincts, not learned facts.
