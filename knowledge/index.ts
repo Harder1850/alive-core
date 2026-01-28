@@ -4,3 +4,8 @@ export * from "./ontologies";
 export * from "./confidence_priors";
 export * from "./reasoning_heuristics";
 export * from "./limits_and_failures";
+export * from "./education/aesthetics_belief_education";
+export * from "./education/cognition_creativity_ethics";
+export * from "./education/governance_society";
+export * from "./education/language_communication";
+export * from "./education/science_technology";

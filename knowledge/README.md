@@ -16,4 +16,6 @@ They define how the core:
 - detects error
 - avoids false certainty
 
+Additional educational stacks live in `knowledge/education/` as static reference constants for culturally grounded cognition (aesthetics, ethics, governance, language, science).
+
 This is analogous to human cognitive instincts, not learned facts.
