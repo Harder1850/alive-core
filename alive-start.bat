@@ -10,4 +10,7 @@ timeout /t 2 >nul
 REM Start ALIVE UI
 cd /d C:\Users\mikeh\dev\alive-system\ui-shell\alive-ui
 npm run tauri dev
+npm run tauri dev
+
+
 
